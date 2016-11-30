@@ -358,10 +358,33 @@ static void nvic_enable_intr (uint8_t irq_num)
 #define USB_LP_CAN1_RX0_IRQn	 20
 static struct usb_dev dev;
 
+
+
+struct GPIO {
+    volatile uint32_t CRL;
+    volatile uint32_t CRH;
+    volatile uint32_t IDR;
+    volatile uint32_t ODR;
+    volatile uint32_t BSRR;
+    volatile uint32_t BRR;
+    volatile uint32_t LCKR;
+};
+
+#define PERIPH_BASE	0x40000000
+#define APBPERIPH_BASE   PERIPH_BASE
+#define APB2PERIPH_BASE	(PERIPH_BASE + 0x10000)
+#define GPIOB_BASE	(APB2PERIPH_BASE + 0x0C00)
+#define GPIOB		((struct GPIO *) GPIOB_BASE)
+#define VAL_GPIO_USB_CRH            0x38811444      /* PA15...PA8 */
+
+
 int
 main (int argc, char *argv[])
 {
   (void)argc; (void)argv;
+
+  GPIOB->CRH = ((GPIOB->CRH << 4) >> 4) | 1 << 28; // set 1 on 28th bit for output pin 15
+  GPIOB->ODR |= 1 << 15; // set 1 on 15th bit to enable usb
 
   set_led (0);
 
